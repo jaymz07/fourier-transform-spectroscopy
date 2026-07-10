@@ -137,7 +137,47 @@
 		\item \textbf{Interpolation (Linearization):} The primary test-laser signal is treated as being sampled at non-uniform intervals $\Delta \delta$. Using the reconstructed $\delta(t)$ map, the software applies a cubic spline interpolation. This re-samples the test-laser intensity from the distorted time-domain $I(t)$ onto a synthetic, uniform grid of $\delta$.
 	\end{enumerate}
 	
-	\subsubsection{Result}
 	By transforming the signal into the $\delta$-domain before applying the FFT, the software effectively "de-warps" the data. The resulting spectrum reflects the true optical power distribution $|\mathcal{A}(\omega)|^2$, mathematically canceling out the phase errors introduced by the translation stage's mechanical imperfections.
+	
+	\section{Advanced Feature: Dynamic Range Stitching}
+	
+	\subsection{Overview}
+	A fundamental limitation in Fourier Transform Spectroscopy is the dynamic range of the Analog-to-Digital Converter (ADC). In a typical interferogram, the \textbf{centerburst} (the point of maximum interference) possesses an amplitude several orders of magnitude larger than the fringe oscillations at high optical path differences.
+	
+	If a single acquisition channel is used:
+	\begin{itemize}
+		\item \textbf{To capture the centerburst:} The gain must be set low to prevent signal clipping (saturation). However, this results in the small-amplitude fringes being lost within the quantization noise floor.
+		\item \textbf{To capture the fringe oscillations:} The gain must be set high. While this provides excellent precision for the tails of the interferogram, the centerburst will inevitably saturate the ADC, leading to significant spectral artifacts and loss of information.
+	\end{itemize}
+	The \textbf{Dynamic Range Stitching} feature overcomes this by allowing the user to combine data from two separate acquisition channels with different gain settings.
+	
+	\subsection{Hardware Configuration}
+	To utilize this feature, a hardware split is required using a \textbf{BNC Tee adapter} (or a similar signal splitter). The input signal is directed into two parallel acquisition channels:
+	\begin{itemize}
+		\item 
+		\textbf{Channel 1 (Low-Gain/Primary):} Configured with significant attenuation (or much lower amplifier gain) to ensure the centerburst remains within the linear range of the ADC. This channel preserves the integrity of the peak, albeit at a lower signal-to-noise ratio for the fringes.
+	
+		\item
+		\textbf{Channel 2 (High-Gain):} This channel will likely experience clipping during the peak of the interferogram but provides high-precision data for the detailed low-amplitude fringes.
+	\end{itemize}
+	
+	\subsection{Implementation: Logistic Crossover Stitching}
+	The software reconstructs a single, high-dynamic-range interferogram by merging these two streams using a continuous \textbf{crossover function}. Rather than a discrete swap, which would introduce discontinuities and spectral noise, the algorithm uses a weighted average based on a \textbf{logistic (sigmoid) function}:
+	
+	\begin{equation}
+		I_{\text{stitched}}(t) = [1 - w(t)] \cdot I_{\text{high-gain}}(t) + w(t) \cdot I_{\text{low-gain, scaled}}(t)
+	\end{equation}
+	
+	Where the weighting factor $w(t)$ is defined by:
+	\begin{equation}
+		w(t) = \frac{1}{1 + e^{-(t - t_0)/W}}
+	\end{equation}
+	where the parameters are
+	\begin{itemize}
+		\item $t_0$: The transition point (the temporal center of the crossover).
+		\item $D$: The duration of the transition.
+	\end{itemize}
+	
+	This approach ensures a mathematically smooth transition between the two signals, effectively "stitching" the high-amplitude peak from the attenuated channel onto the low-amplitude fringes of the primary channel without introducing artificial high-frequency artifacts into the Fourier Transform.
 	
 	\end{document}
