@@ -74,11 +74,6 @@
 	\end{equation}
 	The intensity detected by the photodetector is an offset sinusoidal function of the OPD $\delta$. The amplitude of this sinusoid is maximized when the beams emerging from each arm have the same field strength (or equivalently the same intensity) which occurs when $A_1 = A_2$.
 	
-	For a broadband source, the total detected intensity $I(t)$ is the integral of all monochromatic components across the frequency spectrum:
-	$$I(t) = I_0 + \int_{0}^{\infty} |\mathcal{A}(\omega)|^2 \cos\left(\frac{2\omega v t}{c} + \phi_0\right) d\omega$$
-	where $v$ is the scanning velocity and $|\mathcal{A}(\omega)|^2$ is the target optical power spectrum.
-	
-	
 
 	\section{Fourier Transform Spectroscopy (FTS)} \label{sec:wl_FTIR}
 
@@ -156,10 +151,34 @@
 	\begin{itemize}
 		\item 
 		\textbf{Channel 1 (Low-Gain/Primary):} Configured with significant attenuation (or much lower amplifier gain) to ensure the centerburst remains within the linear range of the ADC. This channel preserves the integrity of the peak, albeit at a lower signal-to-noise ratio for the fringes.
+		
+		\item
+		\textbf{Channel 2 (Reference Laser Interference Signal):} The roughly sinusoidal interference pattern resulting from the stabilized Helium-Neon laser.
 	
 		\item
-		\textbf{Channel 2 (High-Gain):} This channel will likely experience clipping during the peak of the interferogram but provides high-precision data for the detailed low-amplitude fringes.
+		\textbf{Channel 3 (High-Gain):} This channel will likely experience clipping during the peak of the interferogram but provides high-precision data for the detailed low-amplitude fringes.
 	\end{itemize}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\linewidth]{diagrams/pic/ftir_000}
+		\caption{Three channel acquisition, showing scope settings. 20 million points are recorded per channel.}
+		\label{fig:ftir000}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\linewidth]{diagrams/pic/ftir_003}
+		\caption{Zoom of the interferograms near the centerburst. While Channel 1 (yellow) captures the full range of the centerburst, Channel 3 (green) is seen to clip here. However this channel allows for high dynamic range recordings away from the centurburst.}
+		\label{fig:ftir003}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\linewidth]{diagrams/pic/ftir_002}
+		\caption{Details of the test signal are revealed by the high gain channel during most of the scan. The optical phase delay $\delta$ is calibrated by the zero crossings of Channel 2 (blue). The software provides bandpass filtering to remove noise and offsets from this signal.}
+		\label{fig:ftir002}
+	\end{figure}
 	
 	\subsection{Implementation: Logistic Crossover Stitching}
 	The software reconstructs a single, high-dynamic-range interferogram by merging these two streams using a continuous \textbf{crossover function}. Rather than a discrete swap, which would introduce discontinuities and spectral noise, the algorithm uses a weighted average based on a \textbf{logistic (sigmoid) function}:

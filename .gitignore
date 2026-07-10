@@ -5,4 +5,4 @@ tex/FTS Theory.log
 tex/FTS Theory.out
 tex/FTS Theory.synctex.gz
 tex/FTS Theory.pdf
-
+*.csv
